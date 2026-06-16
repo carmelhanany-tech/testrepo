@@ -1,0 +1,93 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      String   @default("EMPLOYEE")
+  managerId String?
+  manager   User?    @relation("ManagerTeam", fields: [managerId], references: [id])
+  team      User[]   @relation("ManagerTeam")
+  progress  SessionProgress[]
+  checkupResults CheckupResult[]
+  startDate DateTime @default(now())
+  createdAt DateTime @default(now())
+}
+
+model Week {
+  id       String    @id @default(cuid())
+  number   Int       @unique
+  title    String
+  sessions Session[]
+}
+
+model Session {
+  id          String   @id @default(cuid())
+  weekId      String
+  week        Week     @relation(fields: [weekId], references: [id])
+  order       Int
+  title       String
+  description String?
+  contentType String   @default("TEXT")
+  notionUrl   String?
+  slidesUrl   String?
+  videoUrl    String?
+  textContent String?
+  terms       Term[]
+  questions   Question[]
+  progress    SessionProgress[]
+  checkupResults CheckupResult[]
+}
+
+model Term {
+  id          String   @id @default(cuid())
+  sessionId   String
+  session     Session  @relation(fields: [sessionId], references: [id])
+  word        String
+  definition  String
+}
+
+model Question {
+  id        String   @id @default(cuid())
+  sessionId String
+  session   Session  @relation(fields: [sessionId], references: [id])
+  text      String
+  type      String   @default("MULTIPLE_CHOICE")
+  options   String?
+  answer    String
+  order     Int      @default(0)
+}
+
+model SessionProgress {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  sessionId   String
+  session     Session  @relation(fields: [sessionId], references: [id])
+  status      String   @default("NOT_STARTED")
+  startedAt   DateTime?
+  completedAt DateTime?
+  @@unique([userId, sessionId])
+}
+
+model CheckupResult {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  sessionId String
+  session   Session  @relation(fields: [sessionId], references: [id])
+  answers   String
+  score     Int
+  total     Int
+  correct   Int
+  createdAt DateTime @default(now())
+  @@unique([userId, sessionId])
+}

@@ -1,0 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  background-color: #F7FAFC;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.prose h1 { font-size: 1.5rem; font-weight: 700; color: #1A202C; margin-top: 1.5rem; margin-bottom: 0.75rem; }
+.prose h2 { font-size: 1.25rem; font-weight: 700; color: #2D3748; margin-top: 1.25rem; margin-bottom: 0.5rem; }
+.prose h3 { font-size: 1.1rem; font-weight: 600; color: #2D3748; margin-top: 1rem; margin-bottom: 0.5rem; }
+.prose p { color: #4A5568; line-height: 1.75; margin-bottom: 1rem; }
+.prose strong { color: #1A202C; font-weight: 600; }
+.prose em { color: #718096; font-style: italic; }
+.prose ul { margin: 0.75rem 0 0.75rem 1.5rem; }
+.prose li { color: #4A5568; margin-bottom: 0.35rem; line-height: 1.6; }
+.prose hr { border-color: #E2E8F0; margin: 1.5rem 0; }
+.prose blockquote { border-left: 3px solid #ED8936; padding-left: 1rem; color: #718096; font-style: italic; }
