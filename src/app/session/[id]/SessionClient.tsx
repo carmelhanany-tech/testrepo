@@ -63,9 +63,7 @@ function renderMarkdown(text: string): string {
     .replace(/\*(.+?)\*/g, '<em>$1</em>')
     .replace(/^---$/gm, '<hr />')
     .replace(/^- (.+)$/gm, '<li>$1</li>')
-    .replace(/(<li>[^]*?<\/li>(\n)?)+/gm, (m) => `<ul>${m}</ul>`)
     .replace(/\n\n/g, '</p><p>')
-    .replace(/^(?!<[hpuol])/gm, '')
 }
 
 function getVideoEmbed(url: string): string {
@@ -104,8 +102,6 @@ export default function SessionClient({
   )
   const [glossaryOpen, setGlossaryOpen] = useState(false)
   const [selectedTerm, setSelectedTerm] = useState<Term | null>(null)
-
-  // Checkup state
   const [currentQ, setCurrentQ] = useState(0)
   const [answers, setAnswers] = useState<Record<string, string>>({})
   const [result, setResult] = useState(existingResult)
@@ -159,59 +155,88 @@ export default function SessionClient({
 
   const scoreColor =
     result && result.score >= 80
-      ? "#38A169"
+      ? "var(--success)"
       : result && result.score >= 60
-      ? "#ED8936"
-      : "#E53E3E"
-
-  const scoreMessage =
-    result && result.score >= 80
-      ? "Excellent work! 🌟"
-      : result && result.score >= 60
-      ? "Good job! 👍"
-      : "Keep learning! 💪"
+      ? "var(--accent)"
+      : "#C0392B"
 
   return (
-    <div className="flex min-h-screen" style={{ backgroundColor: "#F7FAFC" }}>
+    <div className="flex min-h-screen" style={{ backgroundColor: "var(--bg)" }}>
       <Sidebar weeks={sidebarWeeks} userName={userName} role="EMPLOYEE" />
 
       <main className="flex-1 flex flex-col min-w-0">
-        {/* Top stepper */}
-        <div className="bg-white border-b border-gray-100 px-8 py-4 flex-shrink-0">
-          <div className="flex items-center gap-1.5 text-xs text-gray-400 mb-3">
-            <span>Week {session.week.number}</span>
+        {/* Session stepper bar */}
+        <div
+          style={{
+            backgroundColor: "var(--surface)",
+            borderBottom: "1px solid var(--border)",
+            padding: "14px 32px",
+            flexShrink: 0,
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+              fontSize: "12px",
+              color: "var(--text-muted)",
+              marginBottom: "12px",
+            }}
+          >
+            <span>Week {session.week.number}: {session.week.title}</span>
             <ChevronRight size={12} />
-            <span className="text-gray-600 font-medium">{session.title}</span>
+            <span style={{ color: "var(--text-primary)", fontWeight: "600" }}>
+              {session.title}
+            </span>
           </div>
-          <div className="flex items-center gap-4">
+
+          {/* Steps */}
+          <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
             {(["content", "checkup", "complete"] as Step[]).map((s, i) => {
-              const labels = ["Content", "Knowledge Check", "Complete"]
+              const labels = ["Read & Explore", "Knowledge Check", "Complete"]
               const isActive = step === s
               const isDone =
                 (step === "checkup" && i === 0) ||
                 (step === "complete" && i <= 1)
               return (
-                <div key={s} className="flex items-center gap-3">
+                <div key={s} style={{ display: "flex", alignItems: "center", gap: "20px" }}>
                   {i > 0 && (
                     <div
-                      className="h-px w-8 transition-all"
-                      style={{ backgroundColor: isDone ? "#ED8936" : "#E2E8F0" }}
+                      style={{
+                        height: "1px",
+                        width: "32px",
+                        backgroundColor: isDone ? "var(--accent)" : "var(--border)",
+                      }}
                     />
                   )}
-                  <div className="flex items-center gap-2">
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                     <div
-                      className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all"
-                      style={
-                        isDone || isActive
-                          ? { backgroundColor: "#ED8936", color: "white" }
-                          : { backgroundColor: "#EDF2F7", color: "#A0AEC0" }
-                      }
+                      style={{
+                        width: "24px",
+                        height: "24px",
+                        borderRadius: "50%",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: "11px",
+                        fontWeight: "700",
+                        flexShrink: 0,
+                        ...(isDone
+                          ? { backgroundColor: "var(--success)", color: "white" }
+                          : isActive
+                          ? { backgroundColor: "var(--accent)", color: "white" }
+                          : { backgroundColor: "var(--surface-subtle)", color: "var(--text-muted)" }),
+                      }}
                     >
                       {isDone ? "✓" : i + 1}
                     </div>
                     <span
-                      className="text-sm font-medium hidden sm:block"
-                      style={{ color: isActive ? "#1A202C" : "#A0AEC0" }}
+                      style={{
+                        fontSize: "12px",
+                        fontWeight: isActive ? "700" : "500",
+                        color: isActive ? "var(--text-primary)" : "var(--text-muted)",
+                      }}
                     >
                       {labels[i]}
                     </span>
@@ -222,98 +247,215 @@ export default function SessionClient({
           </div>
         </div>
 
-        {/* Main content */}
-        <div className="flex-1 p-8 overflow-auto">
-          <div className="max-w-3xl mx-auto">
+        {/* Content area */}
+        <div style={{ flex: 1, overflowY: "auto", padding: "40px 32px" }}>
+          <div style={{ maxWidth: "680px", margin: "0 auto" }}>
 
             {/* ── CONTENT STEP ── */}
             {step === "content" && (
               <div>
-                <div className="mb-6">
-                  <h1 className="text-2xl font-bold text-gray-800">{session.title}</h1>
+                <div style={{ marginBottom: "28px" }}>
+                  <p
+                    style={{
+                      fontSize: "11px",
+                      fontWeight: "700",
+                      color: "var(--accent)",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.1em",
+                      marginBottom: "8px",
+                    }}
+                  >
+                    Week {session.week.number} · Session
+                  </p>
+                  <h1
+                    style={{
+                      fontSize: "26px",
+                      fontWeight: "800",
+                      color: "var(--text-primary)",
+                      letterSpacing: "-0.025em",
+                      lineHeight: 1.2,
+                      marginBottom: "10px",
+                    }}
+                  >
+                    {session.title}
+                  </h1>
                   {session.description && (
-                    <p className="text-gray-500 mt-2 text-sm leading-relaxed">
+                    <p
+                      style={{
+                        fontSize: "15px",
+                        color: "var(--text-secondary)",
+                        lineHeight: 1.6,
+                        fontFamily: "Lora, Georgia, serif",
+                        fontStyle: "italic",
+                      }}
+                    >
                       {session.description}
                     </p>
                   )}
                 </div>
 
-                {/* Content card */}
-                <div className="bg-white rounded-2xl shadow-sm p-8 mb-6">
-                  {/* Text content */}
-                  {session.textContent && (
+                {/* Reading content */}
+                {session.textContent && (
+                  <div
+                    style={{
+                      backgroundColor: "var(--surface)",
+                      borderRadius: "16px",
+                      padding: "36px 40px",
+                      boxShadow: "var(--shadow-sm)",
+                      border: "1px solid var(--border)",
+                      marginBottom: "20px",
+                    }}
+                  >
                     <div
-                      className="prose"
+                      className="reading-prose"
                       dangerouslySetInnerHTML={{
                         __html: `<p>${renderMarkdown(session.textContent)}</p>`,
                       }}
                     />
-                  )}
+                  </div>
+                )}
 
-                  {/* Google Slides */}
-                  {session.slidesUrl && (
-                    <div className="mt-6">
-                      <iframe
-                        src={getSlidesEmbed(session.slidesUrl)}
-                        className="w-full rounded-xl border border-gray-100"
-                        style={{ height: "480px" }}
-                        allowFullScreen
-                      />
-                    </div>
-                  )}
+                {/* Slides embed */}
+                {session.slidesUrl && (
+                  <div
+                    style={{
+                      backgroundColor: "var(--surface)",
+                      borderRadius: "16px",
+                      overflow: "hidden",
+                      border: "1px solid var(--border)",
+                      marginBottom: "20px",
+                      boxShadow: "var(--shadow-sm)",
+                    }}
+                  >
+                    <iframe
+                      src={getSlidesEmbed(session.slidesUrl)}
+                      style={{ width: "100%", height: "480px", display: "block" }}
+                      allowFullScreen
+                    />
+                  </div>
+                )}
 
-                  {/* Video (Loom / Vimeo) */}
-                  {session.videoUrl && (
-                    <div className="mt-6">
-                      <iframe
-                        src={getVideoEmbed(session.videoUrl)}
-                        className="w-full rounded-xl border border-gray-100"
-                        style={{ height: "480px" }}
-                        allowFullScreen
-                        allow="autoplay; fullscreen"
-                      />
-                    </div>
-                  )}
+                {/* Video embed */}
+                {session.videoUrl && (
+                  <div
+                    style={{
+                      backgroundColor: "var(--surface)",
+                      borderRadius: "16px",
+                      overflow: "hidden",
+                      border: "1px solid var(--border)",
+                      marginBottom: "20px",
+                      boxShadow: "var(--shadow-sm)",
+                    }}
+                  >
+                    <iframe
+                      src={getVideoEmbed(session.videoUrl)}
+                      style={{ width: "100%", height: "480px", display: "block" }}
+                      allowFullScreen
+                      allow="autoplay; fullscreen"
+                    />
+                  </div>
+                )}
 
-                  {/* Notion link */}
-                  {session.notionUrl && (
-                    <div className="mt-6">
-                      <a
-                        href={session.notionUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 px-5 py-3 rounded-xl border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors text-sm font-medium"
-                      >
-                        <BookOpen size={16} style={{ color: "#ED8936" }} />
-                        Open in Notion
-                        <ExternalLink size={14} className="text-gray-400" />
-                      </a>
-                    </div>
-                  )}
-                </div>
+                {/* Notion link */}
+                {session.notionUrl && (
+                  <div
+                    style={{
+                      backgroundColor: "var(--surface)",
+                      borderRadius: "16px",
+                      padding: "20px 24px",
+                      border: "1px solid var(--border)",
+                      marginBottom: "20px",
+                    }}
+                  >
+                    <a
+                      href={session.notionUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "8px",
+                        fontSize: "13px",
+                        fontWeight: "600",
+                        color: "var(--text-primary)",
+                        textDecoration: "none",
+                      }}
+                    >
+                      <BookOpen size={16} style={{ color: "var(--accent)" }} />
+                      Open in Notion
+                      <ExternalLink size={13} style={{ color: "var(--text-muted)" }} />
+                    </a>
+                  </div>
+                )}
 
-                {/* Terms card */}
+                {/* Terms */}
                 {session.terms.length > 0 && (
-                  <div className="bg-white rounded-2xl shadow-sm p-6 mb-6">
-                    <h3 className="font-bold text-gray-700 mb-4 flex items-center gap-2 text-sm">
-                      <BookOpen size={16} style={{ color: "#ED8936" }} />
-                      Key Terms in this Session
+                  <div
+                    style={{
+                      backgroundColor: "var(--surface)",
+                      borderRadius: "16px",
+                      padding: "24px",
+                      border: "1px solid var(--border)",
+                      marginBottom: "28px",
+                    }}
+                  >
+                    <h3
+                      style={{
+                        fontSize: "12px",
+                        fontWeight: "700",
+                        color: "var(--text-muted)",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.08em",
+                        marginBottom: "14px",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "6px",
+                      }}
+                    >
+                      <BookOpen size={14} style={{ color: "var(--accent)" }} />
+                      Key Terms
                     </h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
+                        gap: "10px",
+                      }}
+                    >
                       {session.terms.map((term) => (
                         <button
                           key={term.id}
                           onClick={() => setSelectedTerm(term)}
-                          className="text-left p-3 rounded-xl transition-colors hover:shadow-sm"
-                          style={{ backgroundColor: "#FFF5EC" }}
+                          style={{
+                            textAlign: "left",
+                            padding: "12px 14px",
+                            borderRadius: "10px",
+                            backgroundColor: "var(--accent-light)",
+                            border: "1px solid #EDD5C4",
+                            cursor: "pointer",
+                          }}
                         >
                           <div
-                            className="font-semibold text-sm mb-1"
-                            style={{ color: "#C05621" }}
+                            style={{
+                              fontSize: "12px",
+                              fontWeight: "700",
+                              color: "var(--accent-dark)",
+                              marginBottom: "3px",
+                            }}
                           >
                             {term.word}
                           </div>
-                          <div className="text-gray-500 text-xs leading-relaxed line-clamp-2">
+                          <div
+                            style={{
+                              fontSize: "11px",
+                              color: "var(--text-secondary)",
+                              lineHeight: 1.5,
+                              overflow: "hidden",
+                              display: "-webkit-box",
+                              WebkitLineClamp: 2,
+                              WebkitBoxOrient: "vertical",
+                            }}
+                          >
                             {term.definition}
                           </div>
                         </button>
@@ -324,60 +466,122 @@ export default function SessionClient({
 
                 <button
                   onClick={() => setStep("checkup")}
-                  className="w-full py-4 rounded-xl text-white font-semibold text-base transition-all hover:opacity-90 flex items-center justify-center gap-2"
-                  style={{ backgroundColor: "#ED8936" }}
+                  style={{
+                    width: "100%",
+                    padding: "14px",
+                    borderRadius: "12px",
+                    backgroundColor: "var(--accent)",
+                    color: "white",
+                    fontWeight: "700",
+                    fontSize: "14px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "8px",
+                    cursor: "pointer",
+                    border: "none",
+                  }}
                 >
-                  I&apos;m done reading → Take Knowledge Check
-                  <Brain size={18} />
+                  I&apos;ve finished reading — take the knowledge check
+                  <Brain size={16} />
                 </button>
               </div>
             )}
 
-            {/* ── CHECKUP STEP (questions) ── */}
+            {/* ── CHECKUP QUESTIONS ── */}
             {step === "checkup" && !showResults && (
               <div>
-                <div className="flex items-center gap-3 mb-6">
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "14px",
+                    marginBottom: "24px",
+                  }}
+                >
                   <div
-                    className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-                    style={{ backgroundColor: "#ED8936" }}
+                    style={{
+                      width: "44px",
+                      height: "44px",
+                      borderRadius: "12px",
+                      backgroundColor: "var(--accent)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexShrink: 0,
+                    }}
                   >
                     <Brain className="text-white" size={20} />
                   </div>
                   <div>
-                    <h2 className="text-xl font-bold text-gray-800">Knowledge Check</h2>
-                    <p className="text-sm text-gray-400">
+                    <h2
+                      style={{
+                        fontSize: "18px",
+                        fontWeight: "800",
+                        color: "var(--text-primary)",
+                        letterSpacing: "-0.02em",
+                      }}
+                    >
+                      Knowledge Check
+                    </h2>
+                    <p style={{ fontSize: "12px", color: "var(--text-muted)" }}>
                       Question {currentQ + 1} of {questions.length}
                     </p>
                   </div>
                 </div>
 
-                {/* Progress dots */}
-                <div className="flex gap-1.5 mb-8">
+                {/* Progress track */}
+                <div
+                  style={{
+                    display: "flex",
+                    gap: "4px",
+                    marginBottom: "28px",
+                  }}
+                >
                   {questions.map((_, i) => (
                     <div
                       key={i}
-                      className="h-1.5 flex-1 rounded-full transition-all duration-300"
                       style={{
+                        height: "3px",
+                        flex: 1,
+                        borderRadius: "100px",
                         backgroundColor:
                           i < currentQ
-                            ? "#48BB78"
+                            ? "var(--success)"
                             : i === currentQ
-                            ? "#ED8936"
-                            : "#E2E8F0",
+                            ? "var(--accent)"
+                            : "var(--border)",
+                        transition: "background-color 0.3s ease",
                       }}
                     />
                   ))}
                 </div>
 
-                <div className="bg-white rounded-2xl shadow-sm p-8">
-                  <h3 className="text-base font-semibold text-gray-800 mb-6 leading-relaxed">
+                <div
+                  style={{
+                    backgroundColor: "var(--surface)",
+                    borderRadius: "16px",
+                    padding: "28px 32px",
+                    border: "1px solid var(--border)",
+                    boxShadow: "var(--shadow-sm)",
+                  }}
+                >
+                  <h3
+                    style={{
+                      fontSize: "16px",
+                      fontWeight: "600",
+                      color: "var(--text-primary)",
+                      lineHeight: 1.5,
+                      marginBottom: "24px",
+                      fontFamily: "Lora, Georgia, serif",
+                    }}
+                  >
                     {currentQuestion?.text}
                   </h3>
 
-                  {/* Multiple choice / True-False */}
                   {(currentQuestion?.type === "MULTIPLE_CHOICE" ||
                     currentQuestion?.type === "TRUE_FALSE") && (
-                    <div className="space-y-3">
+                    <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                       {options.map((opt) => {
                         const selected = answers[currentQuestion.id] === opt
                         return (
@@ -386,20 +590,27 @@ export default function SessionClient({
                             onClick={() =>
                               setAnswers((a) => ({ ...a, [currentQuestion.id]: opt }))
                             }
-                            className="w-full text-left px-5 py-3.5 rounded-xl border-2 transition-all text-sm font-medium"
-                            style={
-                              selected
+                            style={{
+                              textAlign: "left",
+                              padding: "14px 18px",
+                              borderRadius: "12px",
+                              fontSize: "14px",
+                              fontWeight: "500",
+                              cursor: "pointer",
+                              transition: "all 0.15s ease",
+                              ...(selected
                                 ? {
-                                    backgroundColor: "#ED8936",
-                                    borderColor: "#ED8936",
+                                    backgroundColor: "var(--accent)",
+                                    border: "2px solid var(--accent)",
                                     color: "white",
+                                    boxShadow: "0 4px 12px rgba(212, 132, 90, 0.3)",
                                   }
                                 : {
-                                    backgroundColor: "white",
-                                    borderColor: "#E2E8F0",
-                                    color: "#4A5568",
-                                  }
-                            }
+                                    backgroundColor: "var(--surface)",
+                                    border: "1.5px solid var(--border)",
+                                    color: "var(--text-primary)",
+                                  }),
+                            }}
                           >
                             {opt}
                           </button>
@@ -408,12 +619,22 @@ export default function SessionClient({
                     </div>
                   )}
 
-                  {/* Short answer */}
                   {currentQuestion?.type === "SHORT_ANSWER" && (
                     <textarea
-                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl text-gray-700 text-sm focus:outline-none focus:border-orange-300 resize-none transition-all"
+                      style={{
+                        width: "100%",
+                        padding: "14px",
+                        borderRadius: "12px",
+                        border: "1.5px solid var(--border)",
+                        fontSize: "14px",
+                        color: "var(--text-primary)",
+                        resize: "none",
+                        outline: "none",
+                        backgroundColor: "var(--surface)",
+                        fontFamily: "Lora, Georgia, serif",
+                      }}
                       rows={3}
-                      placeholder="Type your answer here..."
+                      placeholder="Type your answer here…"
                       value={answers[currentQuestion.id] ?? ""}
                       onChange={(e) =>
                         setAnswers((a) => ({
@@ -424,33 +645,76 @@ export default function SessionClient({
                     />
                   )}
 
-                  {/* Navigation */}
-                  <div className="flex justify-between mt-8">
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      marginTop: "24px",
+                    }}
+                  >
                     <button
                       onClick={() => setCurrentQ((q) => Math.max(0, q - 1))}
                       disabled={currentQ === 0}
-                      className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-gray-500 disabled:opacity-30 hover:bg-gray-100 transition-colors text-sm font-medium"
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "6px",
+                        padding: "8px 14px",
+                        borderRadius: "8px",
+                        fontSize: "13px",
+                        fontWeight: "600",
+                        color: "var(--text-muted)",
+                        backgroundColor: "transparent",
+                        border: "none",
+                        cursor: currentQ === 0 ? "not-allowed" : "pointer",
+                        opacity: currentQ === 0 ? 0.4 : 1,
+                      }}
                     >
-                      <ChevronLeft size={16} /> Back
+                      <ChevronLeft size={15} /> Back
                     </button>
 
                     {currentQ < questions.length - 1 ? (
                       <button
                         onClick={() => setCurrentQ((q) => q + 1)}
                         disabled={!answers[currentQuestion?.id]}
-                        className="flex items-center gap-1.5 px-6 py-2.5 rounded-xl text-white font-semibold text-sm disabled:opacity-50 transition-all hover:opacity-90"
-                        style={{ backgroundColor: "#ED8936" }}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "6px",
+                          padding: "10px 20px",
+                          borderRadius: "10px",
+                          fontSize: "13px",
+                          fontWeight: "700",
+                          color: "white",
+                          backgroundColor: "var(--accent)",
+                          border: "none",
+                          cursor: !answers[currentQuestion?.id] ? "not-allowed" : "pointer",
+                          opacity: !answers[currentQuestion?.id] ? 0.5 : 1,
+                        }}
                       >
-                        Next <ChevronRight size={16} />
+                        Next <ChevronRight size={15} />
                       </button>
                     ) : (
                       <button
                         onClick={submitCheckup}
                         disabled={!answers[currentQuestion?.id] || submitting}
-                        className="flex items-center gap-1.5 px-6 py-2.5 rounded-xl text-white font-semibold text-sm disabled:opacity-50 transition-all hover:opacity-90"
-                        style={{ backgroundColor: "#4A5568" }}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "6px",
+                          padding: "10px 20px",
+                          borderRadius: "10px",
+                          fontSize: "13px",
+                          fontWeight: "700",
+                          color: "white",
+                          backgroundColor: "var(--text-primary)",
+                          border: "none",
+                          cursor: !answers[currentQuestion?.id] || submitting ? "not-allowed" : "pointer",
+                          opacity: !answers[currentQuestion?.id] || submitting ? 0.5 : 1,
+                        }}
                       >
-                        {submitting ? "Submitting..." : "Submit Answers ✓"}
+                        {submitting ? "Submitting…" : "Submit ✓"}
                       </button>
                     )}
                   </div>
@@ -461,71 +725,131 @@ export default function SessionClient({
             {/* ── CHECKUP RESULTS ── */}
             {step === "checkup" && showResults && result && (
               <div>
-                <div className="bg-white rounded-2xl shadow-sm p-8 mb-6">
-                  {/* Score */}
-                  <div className="text-center mb-8">
-                    <div
-                      className="w-24 h-24 rounded-3xl mx-auto mb-4 flex items-center justify-center"
-                      style={{ backgroundColor: `${scoreColor}15` }}
-                    >
-                      <div>
-                        <div
-                          className="text-2xl font-bold"
-                          style={{ color: scoreColor }}
-                        >
-                          {result.correct}/{result.total}
-                        </div>
-                        <div className="text-xs font-semibold" style={{ color: scoreColor }}>
-                          {result.score}%
-                        </div>
+                <div
+                  style={{
+                    backgroundColor: "var(--surface)",
+                    borderRadius: "16px",
+                    padding: "32px",
+                    border: "1px solid var(--border)",
+                    boxShadow: "var(--shadow-sm)",
+                    marginBottom: "16px",
+                    textAlign: "center",
+                  }}
+                >
+                  <div
+                    style={{
+                      width: "80px",
+                      height: "80px",
+                      borderRadius: "20px",
+                      margin: "0 auto 16px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      backgroundColor: `${scoreColor}15`,
+                      border: `2px solid ${scoreColor}30`,
+                    }}
+                  >
+                    <div>
+                      <div
+                        style={{
+                          fontSize: "20px",
+                          fontWeight: "800",
+                          color: scoreColor,
+                          lineHeight: 1,
+                        }}
+                      >
+                        {result.correct}/{result.total}
+                      </div>
+                      <div
+                        style={{
+                          fontSize: "11px",
+                          fontWeight: "600",
+                          color: scoreColor,
+                        }}
+                      >
+                        {result.score}%
                       </div>
                     </div>
-                    <h2 className="text-xl font-bold text-gray-800 mb-1">
-                      {scoreMessage}
-                    </h2>
-                    <p className="text-gray-500 text-sm">
-                      You answered {result.correct} out of {result.total} questions correctly.
-                    </p>
                   </div>
 
-                  {/* Question breakdown */}
-                  <div className="space-y-3">
-                    {questions.map((q) => {
-                      const userAnswer = answers[q.id]
-                      const isCorrect = userAnswer === q.answer
-                      return (
-                        <div
-                          key={q.id}
-                          className="p-4 rounded-xl border-l-4"
+                  <h2
+                    style={{
+                      fontSize: "20px",
+                      fontWeight: "800",
+                      color: "var(--text-primary)",
+                      letterSpacing: "-0.02em",
+                      marginBottom: "6px",
+                    }}
+                  >
+                    {result.score >= 80
+                      ? "Excellent work!"
+                      : result.score >= 60
+                      ? "Good effort!"
+                      : "Keep it up!"}
+                  </h2>
+                  <p style={{ fontSize: "14px", color: "var(--text-secondary)" }}>
+                    You answered {result.correct} of {result.total} questions correctly.
+                  </p>
+                </div>
+
+                {/* Breakdown */}
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "8px",
+                    marginBottom: "20px",
+                  }}
+                >
+                  {questions.map((q) => {
+                    const userAnswer = answers[q.id]
+                    const isCorrect = userAnswer === q.answer
+                    return (
+                      <div
+                        key={q.id}
+                        style={{
+                          padding: "14px 18px",
+                          borderRadius: "12px",
+                          borderLeft: `4px solid ${isCorrect ? "var(--success)" : "#E07070"}`,
+                          backgroundColor: isCorrect ? "var(--success-light)" : "#FEF2F2",
+                        }}
+                      >
+                        <p
                           style={{
-                            backgroundColor: isCorrect ? "#F0FFF4" : "#FFF5F5",
-                            borderColor: isCorrect ? "#68D391" : "#FC8181",
+                            fontSize: "13px",
+                            fontWeight: "600",
+                            color: "var(--text-primary)",
+                            marginBottom: "4px",
                           }}
                         >
-                          <p className="font-medium text-gray-800 text-sm mb-1">
-                            {q.text}
-                          </p>
-                          <p
-                            className="text-xs"
-                            style={{ color: isCorrect ? "#2F855A" : "#C53030" }}
-                          >
-                            Correct answer: {q.answer}
-                          </p>
-                          {!isCorrect && userAnswer && (
-                            <p className="text-xs text-gray-400 mt-0.5">
-                              Your answer: {userAnswer}
-                            </p>
-                          )}
-                        </div>
-                      )
-                    })}
-                  </div>
+                          {q.text}
+                        </p>
+                        <p
+                          style={{
+                            fontSize: "12px",
+                            color: isCorrect ? "var(--success)" : "#B91C1C",
+                          }}
+                        >
+                          Correct: {q.answer}
+                        </p>
+                      </div>
+                    )
+                  })}
                 </div>
 
                 <button
                   onClick={completeSession}
-                  className="w-full py-4 rounded-xl text-white font-semibold text-base transition-all hover:opacity-90 flex items-center justify-center gap-2"
-                  style={{ backgroundColor: "#ED8936" }}
+                  style={{
+                    width: "100%",
+                    padding: "14px",
+                    borderRadius: "12px",
+                    backgroundColor: "var(--accent)",
+                    color: "white",
+                    fontWeight: "700",
+                    fontSize: "14px",
+                    border: "none",
+                    cursor: "pointer",
+                  }}
                 >
                   Complete Session & Continue →
                 </button>
@@ -534,35 +858,80 @@ export default function SessionClient({
 
             {/* ── COMPLETE STEP ── */}
             {step === "complete" && (
-              <div className="text-center py-16">
+              <div style={{ textAlign: "center", padding: "60px 0" }}>
                 <div
-                  className="w-24 h-24 rounded-3xl mx-auto mb-6 flex items-center justify-center"
-                  style={{ backgroundColor: "#F0FFF4" }}
+                  style={{
+                    width: "80px",
+                    height: "80px",
+                    borderRadius: "20px",
+                    backgroundColor: "var(--success-light)",
+                    margin: "0 auto 20px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
                 >
-                  <CheckCircle size={48} style={{ color: "#38A169" }} />
+                  <CheckCircle size={40} style={{ color: "var(--success)" }} />
                 </div>
-                <h2 className="text-3xl font-bold text-gray-800 mb-2">
-                  Session Complete! 🎉
+                <h2
+                  style={{
+                    fontSize: "26px",
+                    fontWeight: "800",
+                    color: "var(--text-primary)",
+                    letterSpacing: "-0.025em",
+                    marginBottom: "8px",
+                  }}
+                >
+                  Session complete!
                 </h2>
-                <p className="text-gray-500 mb-6 text-sm">
-                  Great work on &ldquo;{session.title}&rdquo;. Keep the momentum going!
+                <p
+                  style={{
+                    fontSize: "15px",
+                    color: "var(--text-secondary)",
+                    fontFamily: "Lora, Georgia, serif",
+                    fontStyle: "italic",
+                    marginBottom: "24px",
+                  }}
+                >
+                  Great work on &ldquo;{session.title}&rdquo;. Keep the momentum going.
                 </p>
                 {result && (
                   <div
-                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl mb-8"
-                    style={{ backgroundColor: "#FFF5EC" }}
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "8px",
+                      padding: "10px 20px",
+                      borderRadius: "100px",
+                      backgroundColor: "var(--accent-light)",
+                      marginBottom: "28px",
+                    }}
                   >
-                    <Star size={16} style={{ color: "#ED8936" }} />
-                    <span className="font-semibold text-gray-700 text-sm">
-                      Score: {result.score}% ({result.correct}/{result.total})
+                    <Star size={14} style={{ color: "var(--accent)" }} />
+                    <span
+                      style={{
+                        fontSize: "13px",
+                        fontWeight: "700",
+                        color: "var(--accent-dark)",
+                      }}
+                    >
+                      Score: {result.score}% · {result.correct}/{result.total} correct
                     </span>
                   </div>
                 )}
                 <div>
                   <a
                     href="/dashboard"
-                    className="px-6 py-3 rounded-xl text-white font-semibold text-sm transition-all hover:opacity-90 inline-block"
-                    style={{ backgroundColor: "#ED8936" }}
+                    style={{
+                      display: "inline-block",
+                      padding: "12px 24px",
+                      borderRadius: "12px",
+                      backgroundColor: "var(--accent)",
+                      color: "white",
+                      fontWeight: "700",
+                      fontSize: "14px",
+                      textDecoration: "none",
+                    }}
                   >
                     Back to Dashboard →
                   </a>
@@ -576,33 +945,91 @@ export default function SessionClient({
       {/* Glossary FAB */}
       <button
         onClick={() => setGlossaryOpen(true)}
-        className="fixed bottom-6 right-6 w-12 h-12 rounded-2xl shadow-lg flex items-center justify-center text-white transition-all hover:opacity-90 hover:shadow-xl z-40"
-        style={{ backgroundColor: "#4A5568" }}
+        style={{
+          position: "fixed",
+          bottom: "24px",
+          right: "24px",
+          width: "44px",
+          height: "44px",
+          borderRadius: "12px",
+          backgroundColor: "var(--text-primary)",
+          color: "white",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          boxShadow: "var(--shadow-lg)",
+          border: "none",
+          cursor: "pointer",
+          zIndex: 40,
+        }}
         title="Open Glossary"
       >
-        <BookOpen size={20} />
+        <BookOpen size={18} />
       </button>
 
-      {/* Term detail modal */}
+      {/* Term modal */}
       {selectedTerm && (
         <div
-          className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4"
+          style={{
+            position: "fixed",
+            inset: 0,
+            backgroundColor: "rgba(28, 43, 58, 0.5)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 50,
+            padding: "16px",
+          }}
           onClick={() => setSelectedTerm(null)}
         >
           <div
-            className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl"
+            style={{
+              backgroundColor: "var(--surface)",
+              borderRadius: "16px",
+              padding: "24px",
+              maxWidth: "400px",
+              width: "100%",
+              boxShadow: "var(--shadow-lg)",
+            }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex justify-between items-start mb-3">
-              <h3 className="text-lg font-bold text-gray-800">{selectedTerm.word}</h3>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "flex-start",
+                marginBottom: "12px",
+              }}
+            >
+              <span
+                style={{
+                  fontSize: "16px",
+                  fontWeight: "700",
+                  color: "var(--text-primary)",
+                }}
+              >
+                {selectedTerm.word}
+              </span>
               <button
                 onClick={() => setSelectedTerm(null)}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
+                style={{
+                  color: "var(--text-muted)",
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                }}
               >
-                <X size={18} />
+                <X size={16} />
               </button>
             </div>
-            <p className="text-gray-600 leading-relaxed text-sm">
+            <p
+              style={{
+                fontSize: "14px",
+                color: "var(--text-secondary)",
+                lineHeight: 1.7,
+                fontFamily: "Lora, Georgia, serif",
+              }}
+            >
               {selectedTerm.definition}
             </p>
           </div>
@@ -612,55 +1039,129 @@ export default function SessionClient({
       {/* Glossary drawer */}
       {glossaryOpen && (
         <div
-          className="fixed inset-0 bg-black/40 z-50 flex justify-end"
+          style={{
+            position: "fixed",
+            inset: 0,
+            backgroundColor: "rgba(28, 43, 58, 0.4)",
+            zIndex: 50,
+            display: "flex",
+            justifyContent: "flex-end",
+          }}
           onClick={() => setGlossaryOpen(false)}
         >
           <div
-            className="bg-white w-80 h-full shadow-2xl flex flex-col"
+            style={{
+              backgroundColor: "var(--surface)",
+              width: "320px",
+              height: "100%",
+              boxShadow: "var(--shadow-lg)",
+              display: "flex",
+              flexDirection: "column",
+            }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="sticky top-0 bg-white border-b border-gray-100 p-5 flex justify-between items-center flex-shrink-0">
+            <div
+              style={{
+                padding: "20px",
+                borderBottom: "1px solid var(--border)",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                flexShrink: 0,
+              }}
+            >
               <div>
-                <h3 className="font-bold text-gray-800">Glossary</h3>
-                <p className="text-xs text-gray-400 mt-0.5">
+                <h3
+                  style={{
+                    fontSize: "14px",
+                    fontWeight: "700",
+                    color: "var(--text-primary)",
+                  }}
+                >
+                  Glossary
+                </h3>
+                <p style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "2px" }}>
                   {allTerms.length} terms
                 </p>
               </div>
               <button
                 onClick={() => setGlossaryOpen(false)}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
+                style={{
+                  color: "var(--text-muted)",
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                }}
               >
-                <X size={18} />
+                <X size={16} />
               </button>
             </div>
-            <div className="flex-1 overflow-y-auto p-4 space-y-3">
+            <div
+              style={{
+                flex: 1,
+                overflowY: "auto",
+                padding: "16px",
+                display: "flex",
+                flexDirection: "column",
+                gap: "8px",
+              }}
+            >
               {allTerms.length === 0 ? (
-                <p className="text-gray-400 text-sm text-center py-8">
+                <p
+                  style={{
+                    fontSize: "13px",
+                    color: "var(--text-muted)",
+                    textAlign: "center",
+                    padding: "32px 0",
+                    fontFamily: "Lora, Georgia, serif",
+                    fontStyle: "italic",
+                  }}
+                >
                   Complete sessions to build your glossary.
                 </p>
               ) : (
                 allTerms.map((term) => (
-                  <div
+                  <button
                     key={term.id}
-                    className="p-3 rounded-xl cursor-pointer hover:shadow-sm transition-all"
-                    style={{ backgroundColor: "#FFF5EC" }}
+                    style={{
+                      textAlign: "left",
+                      padding: "12px 14px",
+                      borderRadius: "10px",
+                      backgroundColor: "var(--accent-light)",
+                      border: "1px solid #EDD5C4",
+                      cursor: "pointer",
+                    }}
                     onClick={() => setSelectedTerm(term)}
                   >
                     <div
-                      className="font-semibold text-sm mb-1"
-                      style={{ color: "#C05621" }}
+                      style={{
+                        fontSize: "12px",
+                        fontWeight: "700",
+                        color: "var(--accent-dark)",
+                        marginBottom: "3px",
+                      }}
                     >
                       {term.word}
                     </div>
-                    <div className="text-gray-500 text-xs leading-relaxed line-clamp-2">
+                    <div
+                      style={{
+                        fontSize: "11px",
+                        color: "var(--text-secondary)",
+                        lineHeight: 1.5,
+                        overflow: "hidden",
+                        display: "-webkit-box",
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: "vertical",
+                      }}
+                    >
                       {term.definition}
                     </div>
                     {term.session && (
-                      <div className="text-gray-300 text-xs mt-1">
+                      <div style={{ fontSize: "10px", color: "var(--text-muted)", marginTop: "4px" }}>
                         {term.session.title}
                       </div>
                     )}
-                  </div>
+                  </button>
                 ))
               )}
             </div>

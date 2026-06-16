@@ -1,7 +1,7 @@
 "use client"
 import Sidebar, { WeekItem } from "@/components/Sidebar"
 import Link from "next/link"
-import { CheckCircle, Clock, Lock, Star, ArrowRight, Sparkles } from "lucide-react"
+import { CheckCircle, Clock, Lock, Sparkles, ArrowRight } from "lucide-react"
 
 interface Props {
   user: { name: string; email: string }
@@ -47,96 +47,171 @@ export default function DashboardClient({
   const firstName = user.name.split(" ")[0]
 
   return (
-    <div className="flex min-h-screen" style={{ backgroundColor: "#F7FAFC" }}>
+    <div className="flex min-h-screen" style={{ backgroundColor: "var(--bg)" }}>
       <Sidebar weeks={sidebarWeeks} userName={user.name} role="EMPLOYEE" />
 
-      <main className="flex-1 p-8 overflow-auto">
-        <div className="max-w-3xl mx-auto">
-          {/* Welcome */}
-          <div className="mb-8">
-            <h1 className="text-2xl font-bold text-gray-800">
-              Welcome, {firstName} 👋
-            </h1>
-            <p className="text-gray-500 mt-1 text-sm">
-              Here&apos;s your onboarding progress. Keep going — you&apos;re doing great.
-            </p>
-          </div>
+      <main className="flex-1 overflow-auto">
+        {/* Top bar */}
+        <div
+          style={{
+            borderBottom: "1px solid var(--border)",
+            backgroundColor: "var(--surface)",
+            padding: "18px 32px",
+          }}
+        >
+          <h1
+            style={{
+              fontSize: "18px",
+              fontWeight: "700",
+              color: "var(--text-primary)",
+              letterSpacing: "-0.02em",
+            }}
+          >
+            Welcome back, {firstName}
+          </h1>
+          <p style={{ fontSize: "13px", color: "var(--text-secondary)", marginTop: "2px" }}>
+            Here&apos;s where you are in your onboarding journey.
+          </p>
+        </div>
 
-          {/* Final score banner */}
+        <div style={{ padding: "32px", maxWidth: "760px" }}>
+
+          {/* Final score */}
           {finalScore !== null && (
             <div
-              className="rounded-2xl p-6 mb-6 flex items-center gap-5 shadow-sm"
-              style={{ background: "linear-gradient(135deg, #ED8936, #C05621)" }}
+              style={{
+                borderRadius: "16px",
+                padding: "24px",
+                marginBottom: "24px",
+                display: "flex",
+                alignItems: "center",
+                gap: "20px",
+                background: "linear-gradient(135deg, var(--text-primary), #2D4A63)",
+              }}
             >
-              <div className="w-16 h-16 rounded-2xl bg-white/20 flex items-center justify-center flex-shrink-0">
-                <Sparkles className="text-white" size={28} />
+              <div
+                style={{
+                  width: "60px",
+                  height: "60px",
+                  borderRadius: "14px",
+                  backgroundColor: "rgba(212, 132, 90, 0.2)",
+                  border: "1px solid rgba(212, 132, 90, 0.4)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  flexShrink: 0,
+                }}
+              >
+                <Sparkles style={{ color: "var(--accent)" }} size={24} />
               </div>
               <div>
-                <div className="text-white/80 text-sm font-medium">
-                  Onboarding Complete!
-                </div>
-                <div className="text-white text-3xl font-bold mt-0.5">
-                  {finalScore}
-                  <span className="text-white/60 text-lg font-normal">/10</span>
-                </div>
-                <div className="text-white/70 text-xs mt-1">
-                  Final score across all 7 sessions
+                <p style={{ fontSize: "12px", color: "rgba(255,255,255,0.5)", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "4px" }}>
+                  Onboarding Complete
+                </p>
+                <div style={{ display: "flex", alignItems: "baseline", gap: "6px" }}>
+                  <span style={{ fontSize: "36px", fontWeight: "800", color: "var(--accent)", letterSpacing: "-0.02em" }}>
+                    {finalScore}
+                  </span>
+                  <span style={{ fontSize: "16px", color: "rgba(255,255,255,0.4)" }}>/10</span>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Progress bar */}
-          <div className="bg-white rounded-2xl p-6 shadow-sm mb-6">
-            <div className="flex justify-between items-center mb-3">
-              <span className="font-semibold text-gray-700 text-sm">Overall Progress</span>
-              <span className="text-sm font-bold" style={{ color: "#ED8936" }}>
-                {pct}%
+          {/* Progress card */}
+          <div
+            style={{
+              backgroundColor: "var(--surface)",
+              borderRadius: "16px",
+              padding: "24px",
+              boxShadow: "var(--shadow-sm)",
+              border: "1px solid var(--border)",
+              marginBottom: "20px",
+            }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+              <span style={{ fontSize: "13px", fontWeight: "600", color: "var(--text-secondary)" }}>
+                Overall Progress
+              </span>
+              <span style={{ fontSize: "13px", fontWeight: "700", color: "var(--accent)" }}>
+                {completedSessions}/{totalSessions} sessions
               </span>
             </div>
-            <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
+
+            {/* Bar */}
+            <div
+              style={{
+                height: "6px",
+                backgroundColor: "var(--surface-subtle)",
+                borderRadius: "100px",
+                overflow: "hidden",
+                marginBottom: "16px",
+              }}
+            >
               <div
-                className="h-full rounded-full transition-all duration-700"
-                style={{ width: `${pct}%`, backgroundColor: "#ED8936" }}
+                style={{
+                  height: "100%",
+                  width: `${pct}%`,
+                  borderRadius: "100px",
+                  background: pct === 100
+                    ? "var(--success)"
+                    : "linear-gradient(90deg, var(--accent-dark), var(--accent))",
+                  transition: "width 0.8s cubic-bezier(0.4, 0, 0.2, 1)",
+                }}
               />
             </div>
-            <p className="text-xs text-gray-400 mt-2">
-              {completedSessions} of {totalSessions} sessions completed
-            </p>
 
             {/* Week steps */}
-            <div className="flex items-center gap-2 mt-5 pt-4 border-t border-gray-50">
+            <div style={{ display: "flex", alignItems: "center", gap: "0" }}>
               {weeks.map((week, i) => {
                 const done = week.sessions.every((s: any) => s.status === "COMPLETED")
-                const active = week.sessions.some(
-                  (s: any) => s.status === "IN_PROGRESS" || (!s.locked && s.status === "NOT_STARTED")
+                const active = !done && week.sessions.some(
+                  (s: any) => !s.locked
                 )
                 return (
-                  <div key={week.id} className="flex items-center gap-2 flex-1 min-w-0">
+                  <div
+                    key={week.id}
+                    style={{ display: "flex", alignItems: "center", flex: 1, minWidth: 0 }}
+                  >
                     {i > 0 && (
                       <div
-                        className="h-px flex-shrink-0 w-4"
-                        style={{ backgroundColor: done ? "#ED8936" : "#E2E8F0" }}
+                        style={{
+                          height: "1px",
+                          flex: 1,
+                          backgroundColor: done ? "var(--accent)" : "var(--border)",
+                        }}
                       />
                     )}
-                    <div className="flex items-center gap-1.5 min-w-0">
+                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
                       <div
-                        className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
-                        style={
-                          done
-                            ? { backgroundColor: "#ED8936", color: "white" }
+                        style={{
+                          width: "28px",
+                          height: "28px",
+                          borderRadius: "50%",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          fontSize: "11px",
+                          fontWeight: "700",
+                          flexShrink: 0,
+                          ...(done
+                            ? { backgroundColor: "var(--success)", color: "white" }
                             : active
-                            ? { backgroundColor: "#FFF5EC", color: "#ED8936", border: "2px solid #ED8936" }
-                            : { backgroundColor: "#EDF2F7", color: "#A0AEC0" }
-                        }
+                            ? { backgroundColor: "var(--accent-light)", color: "var(--accent)", border: "2px solid var(--accent)" }
+                            : { backgroundColor: "var(--surface-subtle)", color: "var(--text-muted)", border: "1.5px solid var(--border)" }),
+                        }}
                       >
                         {done ? "✓" : week.number}
                       </div>
                       <span
-                        className="text-xs font-medium truncate hidden sm:block"
-                        style={{ color: done ? "#ED8936" : active ? "#2D3748" : "#A0AEC0" }}
+                        style={{
+                          fontSize: "10px",
+                          fontWeight: "600",
+                          color: done ? "var(--success)" : active ? "var(--text-primary)" : "var(--text-muted)",
+                          whiteSpace: "nowrap",
+                        }}
                       >
-                        Wk {week.number}
+                        {week.title.split(" ")[0]}
                       </span>
                     </div>
                   </div>
@@ -147,82 +222,159 @@ export default function DashboardClient({
 
           {/* Continue CTA */}
           {nextSession && (
-            <div className="bg-white rounded-2xl p-6 shadow-sm mb-6 border-l-4" style={{ borderColor: "#ED8936" }}>
-              <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">
-                {nextSession.status === "IN_PROGRESS" ? "Continue where you left off" : "Up next · Week " + nextSession.weekNumber}
-              </div>
-              <h3 className="text-lg font-bold text-gray-800 mb-4">
+            <div
+              style={{
+                backgroundColor: "var(--surface)",
+                borderRadius: "16px",
+                padding: "24px",
+                boxShadow: "var(--shadow-sm)",
+                border: "1px solid var(--border)",
+                borderLeft: "4px solid var(--accent)",
+                marginBottom: "20px",
+              }}
+            >
+              <p
+                style={{
+                  fontSize: "11px",
+                  fontWeight: "700",
+                  color: "var(--accent)",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.08em",
+                  marginBottom: "6px",
+                }}
+              >
+                {nextSession.status === "IN_PROGRESS" ? "Continue where you left off" : `Up next · Week ${nextSession.weekNumber}`}
+              </p>
+              <h3
+                style={{
+                  fontSize: "17px",
+                  fontWeight: "700",
+                  color: "var(--text-primary)",
+                  letterSpacing: "-0.01em",
+                  marginBottom: "16px",
+                }}
+              >
                 {nextSession.title}
               </h3>
               <Link
                 href={`/session/${nextSession.id}`}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-white font-semibold text-sm transition-all hover:opacity-90"
-                style={{ backgroundColor: "#ED8936" }}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  padding: "10px 20px",
+                  borderRadius: "10px",
+                  backgroundColor: "var(--accent)",
+                  color: "white",
+                  fontWeight: "600",
+                  fontSize: "13px",
+                  textDecoration: "none",
+                }}
               >
                 {nextSession.status === "IN_PROGRESS" ? "Continue Session" : "Start Session"}
-                <ArrowRight size={16} />
+                <ArrowRight size={14} />
               </Link>
             </div>
           )}
 
-          {!nextSession && completedSessions === 0 && (
-            <div className="bg-white rounded-2xl p-8 shadow-sm mb-6 text-center">
-              <div className="text-4xl mb-3">🚀</div>
-              <h3 className="font-bold text-gray-800 mb-2">Ready to begin your journey?</h3>
-              <p className="text-gray-500 text-sm mb-4">
-                Your onboarding is waiting. Click on Week 1 in the sidebar to get started.
-              </p>
-            </div>
-          )}
-
           {/* Week cards */}
-          <div className="space-y-4">
+          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
             {weeks.map((week) => {
               const done = week.sessions.filter((s: any) => s.status === "COMPLETED").length
               const total = week.sessions.length
               const weekPct = total > 0 ? Math.round((done / total) * 100) : 0
 
               return (
-                <div key={week.id} className="bg-white rounded-2xl p-5 shadow-sm">
-                  <div className="flex justify-between items-start mb-3">
+                <div
+                  key={week.id}
+                  style={{
+                    backgroundColor: "var(--surface)",
+                    borderRadius: "16px",
+                    padding: "20px 24px",
+                    boxShadow: "var(--shadow-sm)",
+                    border: "1px solid var(--border)",
+                  }}
+                >
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "14px" }}>
                     <div>
-                      <div className="text-xs text-gray-400 font-semibold uppercase tracking-wider">
+                      <p
+                        style={{
+                          fontSize: "10px",
+                          fontWeight: "700",
+                          color: "var(--text-muted)",
+                          textTransform: "uppercase",
+                          letterSpacing: "0.1em",
+                          marginBottom: "2px",
+                        }}
+                      >
                         Week {week.number}
-                      </div>
-                      <h3 className="font-bold text-gray-800 mt-0.5">{week.title}</h3>
+                      </p>
+                      <h3
+                        style={{
+                          fontSize: "15px",
+                          fontWeight: "700",
+                          color: "var(--text-primary)",
+                          letterSpacing: "-0.01em",
+                        }}
+                      >
+                        {week.title}
+                      </h3>
                     </div>
                     <span
-                      className="text-xs font-bold px-2.5 py-1 rounded-full"
-                      style={
-                        weekPct === 100
-                          ? { backgroundColor: "#F0FFF4", color: "#38A169" }
-                          : { backgroundColor: "#FFF5EC", color: "#ED8936" }
-                      }
+                      style={{
+                        fontSize: "11px",
+                        fontWeight: "700",
+                        padding: "4px 10px",
+                        borderRadius: "100px",
+                        ...(weekPct === 100
+                          ? { backgroundColor: "var(--success-light)", color: "var(--success)" }
+                          : { backgroundColor: "var(--accent-light)", color: "var(--accent)" }),
+                      }}
                     >
-                      {done}/{total} sessions
+                      {done}/{total}
                     </span>
                   </div>
 
-                  <div className="space-y-1.5">
+                  <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
                     {week.sessions.map((s: any) => (
-                      <div key={s.id} className="flex items-center gap-2.5">
+                      <div
+                        key={s.id}
+                        style={{ display: "flex", alignItems: "center", gap: "10px" }}
+                      >
                         {s.status === "COMPLETED" ? (
-                          <CheckCircle size={14} style={{ color: "#48BB78" }} className="flex-shrink-0" />
+                          <CheckCircle size={14} style={{ color: "var(--success)", flexShrink: 0 }} />
                         ) : s.status === "IN_PROGRESS" ? (
-                          <Clock size={14} style={{ color: "#ED8936" }} className="flex-shrink-0" />
+                          <Clock size={14} style={{ color: "var(--accent)", flexShrink: 0 }} />
                         ) : s.locked ? (
-                          <Lock size={14} className="text-gray-200 flex-shrink-0" />
+                          <Lock size={14} style={{ color: "var(--locked)", flexShrink: 0 }} />
                         ) : (
-                          <div className="w-3.5 h-3.5 rounded-full border-2 border-gray-200 flex-shrink-0" />
+                          <div
+                            style={{
+                              width: "14px",
+                              height: "14px",
+                              borderRadius: "50%",
+                              border: "1.5px solid var(--border)",
+                              flexShrink: 0,
+                            }}
+                          />
                         )}
                         <span
-                          className="text-sm"
-                          style={{ color: s.locked ? "#CBD5E0" : "#4A5568" }}
+                          style={{
+                            fontSize: "13px",
+                            color: s.locked ? "var(--locked)" : "var(--text-secondary)",
+                            flex: 1,
+                          }}
                         >
                           {s.title}
                         </span>
                         {s.checkupResults?.[0] && (
-                          <span className="ml-auto text-xs font-semibold" style={{ color: "#ED8936" }}>
+                          <span
+                            style={{
+                              fontSize: "11px",
+                              fontWeight: "700",
+                              color: "var(--accent)",
+                            }}
+                          >
                             {s.checkupResults[0].score}%
                           </span>
                         )}

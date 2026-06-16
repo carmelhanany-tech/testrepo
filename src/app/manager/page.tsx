@@ -12,9 +12,7 @@ export default async function ManagerPage() {
   if (!manager) redirect("/login")
 
   const totalSessions = await prisma.session.count()
-
-  const where =
-    role === "MANAGER" ? { managerId: manager.id } : { role: "EMPLOYEE" }
+  const where = role === "MANAGER" ? { managerId: manager.id } : { role: "EMPLOYEE" }
 
   const team = await prisma.user.findMany({
     where,
@@ -30,139 +28,76 @@ export default async function ManagerPage() {
     const pct = totalSessions > 0 ? Math.round((completed / totalSessions) * 100) : 0
     const avgScore =
       emp.checkupResults.length > 0
-        ? Math.round(
-            emp.checkupResults.reduce((a, b) => a + b.score, 0) /
-              emp.checkupResults.length
-          )
+        ? Math.round(emp.checkupResults.reduce((a, b) => a + b.score, 0) / emp.checkupResults.length)
         : null
     const inProgress = emp.progress.find((p) => p.status === "IN_PROGRESS")
     return {
-      id: emp.id,
-      name: emp.name,
-      email: emp.email,
+      id: emp.id, name: emp.name, email: emp.email,
       startDate: emp.startDate.toISOString(),
-      completed,
-      total: totalSessions,
-      pct,
-      avgScore,
-      currentSession: inProgress?.session?.title ?? null,
+      completed, total: totalSessions, pct, avgScore,
+      currentSession: (inProgress as any)?.session?.title ?? null,
     }
   })
 
   return (
-    <div className="min-h-screen p-8" style={{ backgroundColor: "#F7FAFC" }}>
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+    <div style={{ minHeight: "100vh", backgroundColor: "var(--bg)" }}>
+      {/* Top bar */}
+      <div style={{ backgroundColor: "var(--surface)", borderBottom: "1px solid var(--border)", padding: "20px 40px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          <div style={{ width: "32px", height: "32px", borderRadius: "8px", backgroundColor: "#D4845A", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: "700", fontSize: "14px" }}>E</div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-800">
+            <h1 style={{ fontSize: "16px", fontWeight: "700", color: "var(--text-primary)", letterSpacing: "-0.01em" }}>
               {role === "MANAGER" ? "My Team" : "All Employees"}
             </h1>
-            <p className="text-gray-500 mt-1 text-sm">
-              {team.length} employee{team.length !== 1 ? "s" : ""} currently onboarding
+            <p style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "1px" }}>
+              {team.length} employee{team.length !== 1 ? "s" : ""} onboarding
             </p>
           </div>
-          <div
-            className="w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold text-sm"
-            style={{ backgroundColor: "#ED8936" }}
-          >
-            {manager.name.charAt(0)}
-          </div>
         </div>
-
-        {/* Nav links */}
-        <div className="flex gap-3 mb-6">
-          <a
-            href="/manager"
-            className="text-sm font-medium px-4 py-2 rounded-xl text-white"
-            style={{ backgroundColor: "#ED8936" }}
-          >
-            Team View
-          </a>
+        <div style={{ display: "flex", gap: "8px" }}>
           {(role === "HR" || role === "ADMIN") && (
-            <a
-              href="/hr"
-              className="text-sm font-medium px-4 py-2 rounded-xl bg-white text-gray-600 border border-gray-100 hover:bg-gray-50 transition-colors"
-            >
-              HR Overview
-            </a>
+            <a href="/hr" style={{ fontSize: "12px", fontWeight: "600", padding: "7px 14px", borderRadius: "8px", backgroundColor: "var(--surface-subtle)", color: "var(--text-secondary)", textDecoration: "none", border: "1px solid var(--border)" }}>HR Overview</a>
           )}
           {role === "ADMIN" && (
-            <a
-              href="/admin"
-              className="text-sm font-medium px-4 py-2 rounded-xl bg-white text-gray-600 border border-gray-100 hover:bg-gray-50 transition-colors"
-            >
-              Admin Panel
-            </a>
+            <a href="/admin" style={{ fontSize: "12px", fontWeight: "600", padding: "7px 14px", borderRadius: "8px", backgroundColor: "var(--surface-subtle)", color: "var(--text-secondary)", textDecoration: "none", border: "1px solid var(--border)" }}>Admin</a>
           )}
         </div>
+      </div>
 
-        {/* Team cards */}
+      <div style={{ padding: "32px 40px", maxWidth: "900px" }}>
         {teamData.length === 0 ? (
-          <div className="bg-white rounded-2xl p-12 text-center shadow-sm">
-            <div className="text-4xl mb-3">👥</div>
-            <p className="text-gray-500 text-sm">No team members onboarding yet.</p>
+          <div style={{ backgroundColor: "var(--surface)", borderRadius: "16px", padding: "60px", textAlign: "center", border: "1px solid var(--border)" }}>
+            <p style={{ color: "var(--text-muted)", fontFamily: "Lora, Georgia, serif", fontStyle: "italic" }}>No team members onboarding yet.</p>
           </div>
         ) : (
-          <div className="grid gap-4">
+          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
             {teamData.map((emp) => (
-              <div key={emp.id} className="bg-white rounded-2xl p-6 shadow-sm">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div
-                      className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold flex-shrink-0"
-                      style={{ backgroundColor: "#4A5568" }}
-                    >
+              <div key={emp.id} style={{ backgroundColor: "var(--surface)", borderRadius: "16px", padding: "22px 26px", border: "1px solid var(--border)", boxShadow: "var(--shadow-sm)" }}>
+                <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "14px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                    <div style={{ width: "40px", height: "40px", borderRadius: "10px", backgroundColor: "var(--text-primary)", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: "700", fontSize: "14px", flexShrink: 0 }}>
                       {emp.name.charAt(0)}
                     </div>
                     <div>
-                      <div className="font-bold text-gray-800">{emp.name}</div>
-                      <div className="text-sm text-gray-400">{emp.email}</div>
+                      <div style={{ fontSize: "15px", fontWeight: "700", color: "var(--text-primary)" }}>{emp.name}</div>
+                      <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>{emp.email}</div>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <div
-                      className="text-2xl font-bold"
-                      style={{ color: "#ED8936" }}
-                    >
-                      {emp.pct}%
-                    </div>
-                    <div className="text-xs text-gray-400">
-                      {emp.completed}/{emp.total} sessions
-                    </div>
+                  <div style={{ textAlign: "right" }}>
+                    <div style={{ fontSize: "26px", fontWeight: "800", color: "var(--accent)", letterSpacing: "-0.02em", lineHeight: 1 }}>{emp.pct}%</div>
+                    <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "2px" }}>{emp.completed}/{emp.total} sessions</div>
                   </div>
                 </div>
 
-                <div className="h-2 bg-gray-100 rounded-full mb-3 overflow-hidden">
-                  <div
-                    className="h-full rounded-full transition-all"
-                    style={{ width: `${emp.pct}%`, backgroundColor: "#ED8936" }}
-                  />
+                <div style={{ height: "4px", backgroundColor: "var(--surface-subtle)", borderRadius: "100px", overflow: "hidden", marginBottom: "12px" }}>
+                  <div style={{ height: "100%", width: `${emp.pct}%`, borderRadius: "100px", background: emp.pct === 100 ? "var(--success)" : "linear-gradient(90deg, var(--accent-dark), var(--accent))", transition: "width 0.6s ease" }} />
                 </div>
 
-                <div className="flex flex-wrap gap-4 text-sm text-gray-500">
-                  <span>
-                    Started{" "}
-                    {new Date(emp.startDate).toLocaleDateString("en-US", {
-                      month: "short",
-                      day: "numeric",
-                    })}
-                  </span>
-                  {emp.avgScore !== null && (
-                    <span>
-                      Avg score:{" "}
-                      <strong style={{ color: "#ED8936" }}>{emp.avgScore}%</strong>
-                    </span>
-                  )}
-                  {emp.currentSession && (
-                    <span>
-                      Currently:{" "}
-                      <strong className="text-gray-700">{emp.currentSession}</strong>
-                    </span>
-                  )}
-                  {emp.pct === 100 && (
-                    <span className="text-green-500 font-semibold">✓ Complete</span>
-                  )}
+                <div style={{ display: "flex", gap: "20px", fontSize: "12px", color: "var(--text-muted)", flexWrap: "wrap" }}>
+                  <span>Started {new Date(emp.startDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>
+                  {emp.avgScore !== null && <span>Avg score: <strong style={{ color: "var(--accent)" }}>{emp.avgScore}%</strong></span>}
+                  {emp.currentSession && <span>Currently: <strong style={{ color: "var(--text-secondary)" }}>{emp.currentSession}</strong></span>}
+                  {emp.pct === 100 && <span style={{ color: "var(--success)", fontWeight: "600" }}>✓ Complete</span>}
                 </div>
               </div>
             ))}

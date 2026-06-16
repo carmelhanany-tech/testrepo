@@ -22,192 +22,107 @@ export default async function HRPage() {
     const pct = totalSessions > 0 ? Math.round((completed / totalSessions) * 100) : 0
     const avgScore =
       emp.checkupResults.length > 0
-        ? Math.round(
-            emp.checkupResults.reduce((a, b) => a + b.score, 0) /
-              emp.checkupResults.length
-          )
+        ? Math.round(emp.checkupResults.reduce((a, b) => a + b.score, 0) / emp.checkupResults.length)
         : null
     const status =
-      pct === 100
-        ? "COMPLETED"
-        : emp.progress.some((p) => p.status === "IN_PROGRESS") || emp.progress.length > 0
-        ? "IN_PROGRESS"
-        : "NOT_STARTED"
-    return {
-      id: emp.id,
-      name: emp.name,
-      email: emp.email,
-      startDate: emp.startDate.toISOString(),
-      manager: emp.manager?.name ?? "—",
-      completed,
-      total: totalSessions,
-      pct,
-      avgScore,
-      status,
-    }
+      pct === 100 ? "COMPLETED"
+      : emp.progress.length > 0 ? "IN_PROGRESS"
+      : "NOT_STARTED"
+    return { id: emp.id, name: emp.name, email: emp.email, startDate: emp.startDate.toISOString(), manager: emp.manager?.name ?? "—", completed, total: totalSessions, pct, avgScore, status }
   })
 
   const stats = {
     total: employees.length,
     inProgress: enriched.filter((e) => e.status === "IN_PROGRESS").length,
     completed: enriched.filter((e) => e.status === "COMPLETED").length,
-    avgScore:
-      employees.flatMap((e) => e.checkupResults).length > 0
-        ? Math.round(
-            employees
-              .flatMap((e) => e.checkupResults)
-              .reduce((a, b) => a + b.score, 0) /
-              employees.flatMap((e) => e.checkupResults).length
-          )
-        : 0,
+    avgScore: employees.flatMap((e) => e.checkupResults).length > 0
+      ? Math.round(employees.flatMap((e) => e.checkupResults).reduce((a, b) => a + b.score, 0) / employees.flatMap((e) => e.checkupResults).length)
+      : 0,
   }
 
-  const statusLabel: Record<string, string> = {
-    COMPLETED: "Completed",
-    IN_PROGRESS: "In Progress",
-    NOT_STARTED: "Not Started",
-  }
-  const statusStyle: Record<string, { backgroundColor: string; color: string }> = {
-    COMPLETED: { backgroundColor: "#F0FFF4", color: "#38A169" },
-    IN_PROGRESS: { backgroundColor: "#FFF5EC", color: "#ED8936" },
-    NOT_STARTED: { backgroundColor: "#F7FAFC", color: "#A0AEC0" },
+  const statusLabel: Record<string, string> = { COMPLETED: "Complete", IN_PROGRESS: "In Progress", NOT_STARTED: "Not Started" }
+  const statusStyle: Record<string, React.CSSProperties> = {
+    COMPLETED: { backgroundColor: "var(--success-light)", color: "var(--success)" },
+    IN_PROGRESS: { backgroundColor: "var(--accent-light)", color: "var(--accent-dark)" },
+    NOT_STARTED: { backgroundColor: "var(--surface-subtle)", color: "var(--text-muted)" },
   }
 
   return (
-    <div className="min-h-screen p-8" style={{ backgroundColor: "#F7FAFC" }}>
-      <div className="max-w-6xl mx-auto">
-        <h1 className="text-2xl font-bold text-gray-800 mb-1">Onboarding Overview</h1>
-        <p className="text-gray-500 text-sm mb-6">
-          Track all employees through their first-month journey
-        </p>
-
-        {/* Nav */}
-        <div className="flex gap-3 mb-8">
-          {role === "ADMIN" && (
-            <a
-              href="/admin"
-              className="text-sm font-medium px-4 py-2 rounded-xl bg-white text-gray-600 border border-gray-100 hover:bg-gray-50 transition-colors"
-            >
-              Admin Panel
-            </a>
-          )}
-          <a
-            href="/manager"
-            className="text-sm font-medium px-4 py-2 rounded-xl bg-white text-gray-600 border border-gray-100 hover:bg-gray-50 transition-colors"
-          >
-            Team View
-          </a>
+    <div style={{ minHeight: "100vh", backgroundColor: "var(--bg)" }}>
+      {/* Top bar */}
+      <div style={{ backgroundColor: "var(--surface)", borderBottom: "1px solid var(--border)", padding: "20px 40px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          <div style={{ width: "32px", height: "32px", borderRadius: "8px", backgroundColor: "#D4845A", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: "700", fontSize: "14px" }}>E</div>
+          <div>
+            <h1 style={{ fontSize: "16px", fontWeight: "700", color: "var(--text-primary)", letterSpacing: "-0.01em" }}>Onboarding Overview</h1>
+            <p style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "1px" }}>First-month journey tracking</p>
+          </div>
         </div>
+        <div style={{ display: "flex", gap: "8px" }}>
+          {role === "ADMIN" && (
+            <a href="/admin" style={{ fontSize: "12px", fontWeight: "600", padding: "7px 14px", borderRadius: "8px", backgroundColor: "var(--surface-subtle)", color: "var(--text-secondary)", textDecoration: "none", border: "1px solid var(--border)" }}>Admin</a>
+          )}
+          <a href="/manager" style={{ fontSize: "12px", fontWeight: "600", padding: "7px 14px", borderRadius: "8px", backgroundColor: "var(--surface-subtle)", color: "var(--text-secondary)", textDecoration: "none", border: "1px solid var(--border)" }}>Team View</a>
+        </div>
+      </div>
 
+      <div style={{ padding: "32px 40px" }}>
         {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "12px", marginBottom: "28px" }}>
           {[
-            { label: "Total Onboarding", value: stats.total, color: "#4A5568" },
-            { label: "In Progress", value: stats.inProgress, color: "#ED8936" },
-            { label: "Completed", value: stats.completed, color: "#38A169" },
-            {
-              label: "Avg Knowledge Score",
-              value: stats.avgScore > 0 ? `${stats.avgScore}%` : "—",
-              color: "#ED8936",
-            },
+            { label: "Total Onboarding", value: stats.total, color: "var(--text-primary)" },
+            { label: "In Progress", value: stats.inProgress, color: "var(--accent)" },
+            { label: "Completed", value: stats.completed, color: "var(--success)" },
+            { label: "Avg Score", value: stats.avgScore > 0 ? `${stats.avgScore}%` : "—", color: "var(--accent)" },
           ].map((stat) => (
-            <div key={stat.label} className="bg-white rounded-2xl p-5 shadow-sm">
-              <div
-                className="text-3xl font-bold mb-1"
-                style={{ color: stat.color }}
-              >
-                {stat.value}
-              </div>
-              <div className="text-xs text-gray-500 font-medium">{stat.label}</div>
+            <div key={stat.label} style={{ backgroundColor: "var(--surface)", borderRadius: "14px", padding: "20px", border: "1px solid var(--border)", boxShadow: "var(--shadow-sm)" }}>
+              <div style={{ fontSize: "28px", fontWeight: "800", color: stat.color, letterSpacing: "-0.02em", lineHeight: 1, marginBottom: "6px" }}>{stat.value}</div>
+              <div style={{ fontSize: "11px", fontWeight: "600", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>{stat.label}</div>
             </div>
           ))}
         </div>
 
         {/* Table */}
-        <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-100">
-            <h2 className="font-bold text-gray-700 text-sm">All Employees</h2>
+        <div style={{ backgroundColor: "var(--surface)", borderRadius: "16px", border: "1px solid var(--border)", boxShadow: "var(--shadow-sm)", overflow: "hidden" }}>
+          <div style={{ padding: "16px 24px", borderBottom: "1px solid var(--border)" }}>
+            <h2 style={{ fontSize: "13px", fontWeight: "700", color: "var(--text-secondary)" }}>All Employees</h2>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full">
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
-                <tr className="border-b border-gray-50">
-                  {[
-                    "Employee",
-                    "Manager",
-                    "Started",
-                    "Progress",
-                    "Avg Score",
-                    "Status",
-                  ].map((h) => (
-                    <th
-                      key={h}
-                      className="text-left px-5 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider"
-                    >
-                      {h}
-                    </th>
+                <tr style={{ borderBottom: "1px solid var(--border-subtle)" }}>
+                  {["Employee", "Manager", "Started", "Progress", "Avg Score", "Status"].map((h) => (
+                    <th key={h} style={{ textAlign: "left", padding: "10px 20px", fontSize: "10px", fontWeight: "700", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.08em" }}>{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {enriched.length === 0 && (
-                  <tr>
-                    <td
-                      colSpan={6}
-                      className="px-5 py-10 text-center text-gray-400 text-sm"
-                    >
-                      No employees onboarding yet.
-                    </td>
-                  </tr>
+                  <tr><td colSpan={6} style={{ padding: "40px", textAlign: "center", fontSize: "13px", color: "var(--text-muted)", fontFamily: "Lora, Georgia, serif", fontStyle: "italic" }}>No employees onboarding yet.</td></tr>
                 )}
-                {enriched.map((emp) => (
-                  <tr
-                    key={emp.id}
-                    className="border-b border-gray-50 hover:bg-gray-50 transition-colors"
-                  >
-                    <td className="px-5 py-4">
-                      <div className="font-medium text-gray-800 text-sm">
-                        {emp.name}
-                      </div>
-                      <div className="text-xs text-gray-400">{emp.email}</div>
+                {enriched.map((emp, i) => (
+                  <tr key={emp.id} style={{ borderBottom: i < enriched.length - 1 ? "1px solid var(--border-subtle)" : "none" }}>
+                    <td style={{ padding: "14px 20px" }}>
+                      <div style={{ fontSize: "13px", fontWeight: "600", color: "var(--text-primary)" }}>{emp.name}</div>
+                      <div style={{ fontSize: "11px", color: "var(--text-muted)" }}>{emp.email}</div>
                     </td>
-                    <td className="px-5 py-4 text-sm text-gray-600">{emp.manager}</td>
-                    <td className="px-5 py-4 text-sm text-gray-500 whitespace-nowrap">
-                      {new Date(emp.startDate).toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      })}
+                    <td style={{ padding: "14px 20px", fontSize: "13px", color: "var(--text-secondary)" }}>{emp.manager}</td>
+                    <td style={{ padding: "14px 20px", fontSize: "12px", color: "var(--text-muted)", whiteSpace: "nowrap" }}>
+                      {new Date(emp.startDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                     </td>
-                    <td className="px-5 py-4">
-                      <div className="flex items-center gap-2">
-                        <div className="h-2 w-24 bg-gray-100 rounded-full overflow-hidden">
-                          <div
-                            className="h-full rounded-full"
-                            style={{
-                              width: `${emp.pct}%`,
-                              backgroundColor: "#ED8936",
-                            }}
-                          />
+                    <td style={{ padding: "14px 20px" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                        <div style={{ height: "4px", width: "80px", backgroundColor: "var(--surface-subtle)", borderRadius: "100px", overflow: "hidden" }}>
+                          <div style={{ height: "100%", width: `${emp.pct}%`, backgroundColor: emp.pct === 100 ? "var(--success)" : "var(--accent)", borderRadius: "100px" }} />
                         </div>
-                        <span className="text-xs text-gray-500 whitespace-nowrap">
-                          {emp.completed}/{emp.total}
-                        </span>
+                        <span style={{ fontSize: "11px", color: "var(--text-muted)", whiteSpace: "nowrap" }}>{emp.completed}/{emp.total}</span>
                       </div>
                     </td>
-                    <td className="px-5 py-4">
-                      <span
-                        className="text-sm font-semibold"
-                        style={{ color: emp.avgScore !== null ? "#ED8936" : "#CBD5E0" }}
-                      >
-                        {emp.avgScore !== null ? `${emp.avgScore}%` : "—"}
-                      </span>
+                    <td style={{ padding: "14px 20px", fontSize: "13px", fontWeight: "700", color: emp.avgScore !== null ? "var(--accent)" : "var(--locked)" }}>
+                      {emp.avgScore !== null ? `${emp.avgScore}%` : "—"}
                     </td>
-                    <td className="px-5 py-4">
-                      <span
-                        className="text-xs font-semibold px-2.5 py-1 rounded-full"
-                        style={statusStyle[emp.status]}
-                      >
+                    <td style={{ padding: "14px 20px" }}>
+                      <span style={{ fontSize: "11px", fontWeight: "700", padding: "4px 10px", borderRadius: "100px", whiteSpace: "nowrap", ...statusStyle[emp.status] }}>
                         {statusLabel[emp.status]}
                       </span>
                     </td>
